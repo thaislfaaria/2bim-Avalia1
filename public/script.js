@@ -1,4 +1,5 @@
 
+
 const formulario = document.getElementById("formulario");
 const campoNumero = document.getElementById("numero");
 const area = document.getElementById("desenho");
@@ -7,6 +8,11 @@ const botaoBaixar = document.getElementById("baixar");
 
 let tokenGoogle = "";
 let svgAtual = "";
+
+window.handleCredentialResponse = function (resposta) {
+  tokenGoogle = resposta.credential;
+  mensagem.textContent = "Login com Google realizado! Agora escolha um número.";
+};
 
 formulario.addEventListener("submit", async (evento) => {
   evento.preventDefault();
@@ -40,7 +46,12 @@ formulario.addEventListener("submit", async (evento) => {
     }
 
     if (resposta.status === 401) {
-      mensagem.textContent = "Faça login com uma conta Google válida e tente novamente.";
+      mensagem.textContent = "Login Google inválido ou expirado. Entre novamente.";
+      return;
+    }
+
+    if (resposta.status === 405) {
+      mensagem.textContent = "Método não permitido.";
       return;
     }
 
@@ -52,17 +63,25 @@ formulario.addEventListener("submit", async (evento) => {
     svgAtual = await resposta.text();
     area.innerHTML = svgAtual;
     botaoBaixar.hidden = false;
+    mensagem.textContent = "Desenho gerado com sucesso!";
   } catch {
     mensagem.textContent = "Erro ao conectar com o servidor.";
   }
 });
 
 botaoBaixar.addEventListener("click", () => {
-  const arquivo = new Blob([svgAtual], { type: "image/svg+xml" });
+  if (!svgAtual) return;
+
+  const arquivo = new Blob([svgAtual], {
+    type: "image/svg+xml"
+  });
+
   const url = URL.createObjectURL(arquivo);
   const link = document.createElement("a");
+
   link.href = url;
   link.download = "exemplo.svg";
   link.click();
+
   URL.revokeObjectURL(url);
 });
