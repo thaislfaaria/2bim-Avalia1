@@ -6,6 +6,6 @@ A figura é a tabuada modular no círculo: 240 pontos igualmente espaçados numa
 
 ## Identificação
 
-Nome: SEU NOME COMPLETO  
-RA: SEU RA  
+Nome: Thaís Larissa Faria Gomes
+RA: 2024204202
 URL: https://2bim-avalia1-7b0.pages.dev
