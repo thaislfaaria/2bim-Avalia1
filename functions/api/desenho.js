@@ -1,4 +1,3 @@
-javascript
 import { gerarDesenho, numeroValido } from "../../lib/desenho.js";
 
 export async function onRequest(context) {
