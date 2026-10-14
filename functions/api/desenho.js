@@ -1,8 +1,9 @@
-```javascript
+javascript
 import { gerarDesenho, numeroValido } from "../../lib/desenho.js";
 
 export async function onRequest(context) {
-  const { request, env } = context;
+  const request = context.request;
+  const env = context.env;
 
   if (request.method !== "POST") {
     return new Response("Método não permitido.", {
@@ -16,7 +17,9 @@ export async function onRequest(context) {
   try {
     dados = await request.json();
   } catch {
-    return new Response("JSON inválido.", { status: 400 });
+    return new Response("JSON inválido.", {
+      status: 400,
+    });
   }
 
   const numero = dados?.numero;
@@ -28,28 +31,37 @@ export async function onRequest(context) {
   }
 
   const autorizacao = request.headers.get("Authorization");
-  const token = autorizacao?.startsWith("Bearer ")
-    ? autorizacao.slice(7)
-    : "";
+  let token = "";
+
+  if (autorizacao && autorizacao.startsWith("Bearer ")) {
+    token = autorizacao.substring(7);
+  }
 
   if (!token) {
-    return new Response("Token ausente ou inválido.", { status: 401 });
+    return new Response("Token ausente ou inválido.", {
+      status: 401,
+    });
   }
 
   let usuario;
 
   try {
-    const resposta = await fetch(
-      `https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`
-    );
+    const url = new URL("https://oauth2.googleapis.com/tokeninfo");
+    url.searchParams.set("id_token", token);
+
+    const resposta = await fetch(url.toString());
 
     if (!resposta.ok) {
-      throw new Error("Token inválido");
+      return new Response("Token inválido ou expirado.", {
+        status: 401,
+      });
     }
 
     usuario = await resposta.json();
   } catch {
-    return new Response("Token inválido ou expirado.", { status: 401 });
+    return new Response("Não foi possível validar o token.", {
+      status: 401,
+    });
   }
 
   if (
@@ -58,7 +70,9 @@ export async function onRequest(context) {
     usuario.email_verified !== "true" ||
     !usuario.email
   ) {
-    return new Response("Token não autorizado.", { status: 401 });
+    return new Response("Token não autorizado.", {
+      status: 401,
+    });
   }
 
   const svg = gerarDesenho(numero, usuario.email);
@@ -71,4 +85,3 @@ export async function onRequest(context) {
     },
   });
 }
-```
